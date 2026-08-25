@@ -1,0 +1,1132 @@
+/* contentStyle.css — Modern quiet dark UI for ClipCrate
+   Soft surfaces, consistent spacing, no gradients, no loud accents.
+*/
+
+:root {
+  /* Surfaces */
+  --bg-base: #0f0f0f;
+  --bg-elevated: #161616;
+  --bg-panel: #1a1a1a;
+  --bg-subtle: #1f1f1f;
+  --bg-hover: #262626;
+  --bg-active: #2a2a2a;
+  --bg-input: #141414;
+
+  /* Text */
+  --text-primary: #e8e8e8;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --text-disabled: #525252;
+
+  /* Borders */
+  --border-subtle: #2a2a2a;
+  --border-default: #333333;
+  --border-strong: #404040;
+  --border-focus: #525252;
+
+  /* Status (muted) */
+  --success-bg: #1a2e1a;
+  --success-text: #8fbc8f;
+  --success-border: #2d4a2d;
+  --error-bg: #2e1a1a;
+  --error-text: #d4a0a0;
+  --error-border: #4a2d2d;
+  --danger: #c07070;
+  --danger-hover: #d48888;
+  --danger-bg: #2a1818;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 999px;
+
+  /* Sizes */
+  --control-h: 28px;
+  --control-h-sm: 24px;
+  --swatch: 28px;
+  --icon-btn: 28px;
+
+  /* Type */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --leading: 1.45;
+
+  /* Motion */
+  --ease: 0.15s ease;
+  --ease-slow: 0.25s ease;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.55);
+
+  /* Z */
+  --z-modal: 999999;
+  --z-tooltip: 1000;
+  --z-dropdown: 1000000;
+  --z-overlay: 1000001;
+}
+
+/* ─── Reset & root ─────────────────────────────────────────── */
+
+#my-extension-root {
+  all: initial;
+  position: fixed !important;
+  top: var(--space-7) !important;
+  right: 48px !important;
+  z-index: var(--z-modal) !important;
+  width: 340px !important;
+  max-height: 80vh !important;
+  overflow: hidden !important;
+  font-family: var(--font) !important;
+  font-size: var(--text-md) !important;
+  line-height: var(--leading) !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-4) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-lg) !important;
+  box-sizing: border-box !important;
+}
+
+#my-extension-root *,
+#my-extension-root *::before,
+#my-extension-root *::after {
+  box-sizing: border-box !important;
+}
+
+#my-extension-root .app {
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  width: 100% !important;
+  height: fit-content !important;
+}
+
+/* ─── Scroll ───────────────────────────────────────────────── */
+
+#my-extension-root .scrollbox {
+  overflow-y: auto !important;
+  height: fit-content !important;
+  max-height: 52svh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  padding-right: 2px !important;
+}
+
+#my-extension-root .scrollbox::-webkit-scrollbar {
+  width: 0 !important;
+  display: none !important;
+}
+
+#my-extension-root .ai-mode-scrollbox {
+  min-height: 260px !important;
+  max-height: 60vh !important;
+  overflow: hidden !important;
+}
+
+/* ─── Divider ──────────────────────────────────────────────── */
+
+#my-extension-root .line {
+  width: 100% !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  background: var(--border-subtle) !important;
+  border: none !important;
+  margin: 0 !important;
+}
+
+/* ─── Header ───────────────────────────────────────────────── */
+
+#my-extension-root .header {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+}
+
+#my-extension-root .header h3 {
+  margin: 0 !important;
+  font-size: var(--text-lg) !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.01em !important;
+}
+
+#my-extension-root .top-buttons {
+  width: 100% !important;
+  display: flex !important;
+  gap: var(--space-3) !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+#my-extension-root #top-but-right {
+  display: flex !important;
+  gap: var(--space-2) !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+}
+
+/* Pill groups */
+#my-extension-root .btn-pill {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  padding: 2px !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--bg-subtle) !important;
+  border: 1px solid var(--border-subtle) !important;
+  flex-shrink: 0 !important;
+}
+
+#my-extension-root .btn-pill button {
+  background: transparent !important;
+  border-radius: var(--radius-full) !important;
+  border: none !important;
+}
+
+#my-extension-root .btn-pill button.active {
+  background: var(--bg-active) !important;
+  color: var(--text-primary) !important;
+}
+
+#my-extension-root .btn-pill button:not(.active):hover {
+  background: var(--bg-hover) !important;
+}
+
+/* Base buttons */
+#my-extension-root button {
+  padding: 0 !important;
+  cursor: pointer !important;
+  font-size: var(--text-sm) !important;
+  font-family: inherit !important;
+  transition: background var(--ease), color var(--ease), border-color var(--ease), opacity var(--ease) !important;
+  height: var(--icon-btn) !important;
+  min-width: var(--icon-btn) !important;
+  width: var(--icon-btn) !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-secondary) !important;
+  border: none !important;
+  background: var(--bg-subtle) !important;
+}
+
+#my-extension-root button:hover {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+#my-extension-root button:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+#my-extension-root #top-but-right>button.active {
+  background: var(--bg-active) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Slots (text clips) ───────────────────────────────────── */
+
+#my-extension-root #slotscontainer {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-2) !important;
+}
+
+#my-extension-root .slot {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+#my-extension-root .slotpreview {
+  padding: 0 var(--space-4) !important;
+  cursor: pointer !important;
+  min-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-secondary) !important;
+  font-size: var(--text-sm) !important;
+  transition: background var(--ease), border-color var(--ease) !important;
+}
+
+#my-extension-root .slotpreview:hover {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+#my-extension-root .slottextarea {
+  width: 100% !important;
+  min-height: 72px !important;
+  border: none !important;
+  outline: none !important;
+  resize: vertical !important;
+  font-family: inherit !important;
+  font-size: var(--text-sm) !important;
+  line-height: var(--leading) !important;
+  padding: var(--space-3) !important;
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+#my-extension-root .editing .slotpreview {
+  background: var(--bg-input) !important;
+  border-color: var(--border-strong) !important;
+  padding: 0 !important;
+}
+
+/* ─── Palettes ─────────────────────────────────────────────── */
+
+#my-extension-root #palettes-container {
+  display: flex !important;
+  width: 100% !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  background: transparent !important;
+}
+
+#my-extension-root #palette-div {
+  width: 100% !important;
+}
+
+#my-extension-root .color-history-cover {
+  width: 100% !important;
+  border-radius: var(--radius-md) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-2) !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+  padding: var(--space-3) !important;
+}
+
+#my-extension-root .color-history {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--space-2) !important;
+  padding: 0 !important;
+  align-items: center !important;
+}
+
+#my-extension-root .color-box {
+  width: var(--swatch) !important;
+  height: var(--swatch) !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer !important;
+  transition: transform var(--ease), box-shadow var(--ease) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  flex-shrink: 0 !important;
+}
+
+#my-extension-root .color-box:hover {
+  transform: scale(1.06) !important;
+  box-shadow: 0 0 0 1px var(--border-strong) !important;
+}
+
+#my-extension-root .add-color-btn {
+  width: var(--swatch) !important;
+  height: var(--swatch) !important;
+  border: 1px dashed var(--border-default) !important;
+  border-radius: var(--radius-sm) !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--text-muted) !important;
+  transition: border-color var(--ease), color var(--ease), background var(--ease) !important;
+}
+
+#my-extension-root .add-color-btn:hover {
+  border-color: var(--border-strong) !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-hover) !important;
+}
+
+/* Drag helpers */
+.dragging-offset-fix {
+  position: relative !important;
+}
+
+div[data-rbd-drag-handle-context-id],
+[data-rbd-draggable-id] {
+  position: relative !important;
+}
+
+[data-rbd-drag-handle-dragging-id] {
+  cursor: grabbing !important;
+}
+
+.palette-colors-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: var(--space-2) !important;
+  padding: var(--space-2) !important;
+}
+
+.color-block {
+  flex-shrink: 0 !important;
+  align-self: flex-start !important;
+}
+
+.palette-colors-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)) !important;
+  gap: var(--space-2) !important;
+  justify-items: start !important;
+  padding: var(--space-2) !important;
+}
+
+/* ─── Context menus ────────────────────────────────────────── */
+
+#my-extension-root .color-context-menu,
+#my-extension-root .text-context-menu {
+  position: absolute !important;
+  background: var(--bg-elevated) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  z-index: var(--z-dropdown) !important;
+  min-width: 128px !important;
+  border: 1px solid var(--border-default) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  padding: var(--space-1) !important;
+}
+
+#my-extension-root .text-context-menu {
+  display: none !important;
+  bottom: 50% !important;
+  right: 10% !important;
+  width: fit-content !important;
+  height: fit-content !important;
+}
+
+#my-extension-root .text-context-menu.visible {
+  display: flex !important;
+}
+
+#my-extension-root .color-context-menu>div,
+#my-extension-root .text-context-menu>div {
+  padding: var(--space-2) var(--space-4) !important;
+  cursor: pointer !important;
+  font-size: var(--text-sm) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+  transition: background var(--ease) !important;
+  text-align: left !important;
+}
+
+#my-extension-root .color-context-menu>div:hover,
+#my-extension-root .text-context-menu>div:hover {
+  background: var(--bg-hover) !important;
+}
+
+#my-extension-root .color-context-menu .danger,
+#my-extension-root .text-context-menu .danger {
+  color: var(--danger) !important;
+}
+
+#my-extension-root .color-context-menu .danger:hover,
+#my-extension-root .text-context-menu .danger:hover {
+  background: var(--danger-bg) !important;
+  color: var(--danger-hover) !important;
+}
+
+/* ─── Empty / feedback ─────────────────────────────────────── */
+
+#my-extension-root .empty-state {
+  text-align: center !important;
+  padding: var(--space-8) var(--space-5) !important;
+  color: var(--text-muted) !important;
+}
+
+#my-extension-root .empty-state-text {
+  font-size: var(--text-sm) !important;
+  margin: 0 !important;
+}
+
+#my-extension-root .feedback {
+  position: fixed !important;
+  top: 12px !important;
+  right: 12px !important;
+  padding: var(--space-2) var(--space-4) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--text-sm) !important;
+  z-index: var(--z-overlay) !important;
+  animation: fadeInOut 2s ease-in-out !important;
+  border: 1px solid transparent !important;
+}
+
+#my-extension-root .feedback.success {
+  background: var(--success-bg) !important;
+  color: var(--success-text) !important;
+  border-color: var(--success-border) !important;
+}
+
+#my-extension-root .feedback.error {
+  background: var(--error-bg) !important;
+  color: var(--error-text) !important;
+  border-color: var(--error-border) !important;
+}
+
+#my-extension-root .success-feedback {
+  background: var(--success-bg) !important;
+  color: var(--success-text) !important;
+}
+
+#my-extension-root .confirm-delete,
+#my-extension-root .confirm-clear {
+  background: var(--danger-bg) !important;
+  color: var(--error-text) !important;
+  border: 1px solid var(--error-border) !important;
+}
+
+@keyframes fadeInOut {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  12%,
+  88% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#my-extension-root .collapsed .color-history {
+  display: none !important;
+}
+
+#my-extension-root .collapsed .color-nav {
+  border-bottom: none !important;
+}
+
+/* ─── Settings ─────────────────────────────────────────────── */
+
+#my-extension-root .settings-page {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-4) !important;
+  color: var(--text-primary) !important;
+  width: 100% !important;
+}
+
+#my-extension-root .settings-back-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-1) !important;
+  align-self: flex-start !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  height: auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .settings-back-btn:hover {
+  color: var(--text-primary) !important;
+  background: transparent !important;
+}
+
+#my-extension-root .settings-back-btn span {
+  font-weight: 500 !important;
+}
+
+#my-extension-root .settings-menu-list {
+  display: flex !important;
+  flex-direction: column !important;
+  /* gap: var(--space-1) !important; */
+  border-radius: var(--radius-sm) !important;
+
+
+}
+
+#my-extension-root .settings-menu-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: left !important;
+  gap: var(--space-2);
+  width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+  min-width: 0 !important;
+  padding: var(--space-3) var(--space-4) !important;
+  background: var(--bg-panel) !important;
+  /* border: 1px solid var(--border-subtle) !important; */
+  border-radius: 0 !important;
+  color: var(--text-primary) !important;
+  cursor: pointer !important;
+  font-size: var(--text-md) !important;
+  text-align: left !important;
+  transition: background var(--ease), border-color var(--ease) !important;
+}
+
+#my-extension-root .settings-menu-list> :first-child {
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+
+}
+
+#my-extension-root .settings-menu-list> :last-child {
+  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+}
+
+
+#my-extension-root .settings-menu-row:hover {
+  background: var(--bg-hover) !important;
+  border-color: var(--border-default) !important;
+}
+
+#my-extension-root .settings-menu-row.danger {
+  color: var(--danger) !important;
+}
+
+#my-extension-root .settings-menu-row.danger.confirm {
+  background: var(--danger-bg) !important;
+  color: var(--danger-hover) !important;
+  border-color: var(--error-border) !important;
+}
+
+#my-extension-root .about-text {
+  color: var(--text-secondary) !important;
+  line-height: 1.55 !important;
+  margin: 0 !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .settings-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-6) !important;
+}
+
+/* Cloud sync */
+#my-extension-root .sync-section,
+#my-extension-root .auth-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  align-items: stretch !important;
+}
+
+#my-extension-root .auth-section {
+  align-items: center !important;
+}
+
+#my-extension-root .sync-section p,
+#my-extension-root .auth-section p {
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .sync-section input,
+#my-extension-root .ai-service-input,
+#my-extension-root .ai-provider-form input {
+  width: 100% !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  font-size: var(--text-sm) !important;
+  font-family: inherit !important;
+  outline: none !important;
+  height: 34px !important;
+  transition: border-color var(--ease) !important;
+}
+
+#my-extension-root .sync-section input:focus,
+#my-extension-root .ai-service-input:focus,
+#my-extension-root .ai-provider-form input:focus {
+  border-color: var(--border-focus) !important;
+}
+
+#my-extension-root .sync-section button,
+#my-extension-root .auth-section button,
+#my-extension-root .ai-provider-add-btn {
+  background: var(--bg-active) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+  padding: 0 var(--space-4) !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  border-radius: var(--radius-sm) !important;
+  cursor: pointer !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .sync-section button:hover,
+#my-extension-root .auth-section button:hover,
+#my-extension-root .ai-provider-add-btn:hover {
+  background: var(--bg-hover) !important;
+}
+
+#my-extension-root .sync-section button:disabled,
+#my-extension-root .auth-section button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+#my-extension-root .sync-status {
+  margin-top: var(--space-2) !important;
+  color: var(--text-muted) !important;
+  font-size: var(--text-xs) !important;
+}
+
+#my-extension-root .sync-status p {
+  margin: 0 !important;
+}
+
+#my-extension-root .close-btn {
+  background: none !important;
+  border: none !important;
+  font-size: var(--text-xl) !important;
+  cursor: pointer !important;
+  color: var(--text-secondary) !important;
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#my-extension-root .close-btn:hover {
+  background: var(--bg-hover) !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── AI Services ──────────────────────────────────────────── */
+
+#my-extension-root .ai-services-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--space-1) !important;
+}
+
+#my-extension-root .ai-services-tab {
+  padding: var(--space-1) var(--space-3) !important;
+  height: auto !important;
+  min-height: 28px !important;
+  min-width: 0 !important;
+  width: auto !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-full) !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  font-size: var(--text-xs) !important;
+  letter-spacing: 0.01em !important;
+}
+
+#my-extension-root .ai-services-tab.active {
+  background: var(--bg-active) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+#my-extension-root .ai-services-tab-add {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: var(--space-1) !important;
+  width: 28px !important;
+  min-width: 28px !important;
+}
+
+#my-extension-root .ai-service-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  /* border: 1px solid var(--border-subtle) !important; */
+  /* border-radius: var(--radius-md) !important; */
+  /* padding: var(--space-2) !important; */
+  /* background: var(--bg-panel) !important; */
+}
+
+#my-extension-root .ai-service-section {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  overflow: hidden !important;
+  background: var(--bg-subtle) !important;
+}
+
+#my-extension-root .ai-service-section-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-1) !important;
+  padding: var(--space-2) !important;
+}
+
+#my-extension-root .ai-service-input {
+  flex: 1 !important;
+  min-width: 0 !important;
+  height: 30px !important;
+}
+
+#my-extension-root .ai-service-icon-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+#my-extension-root .ai-service-icon-btn:hover {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+#my-extension-root .ai-service-list {
+  display: flex !important;
+  flex-direction: column !important;
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+#my-extension-root .ai-service-empty {
+  padding: var(--space-3) !important;
+  color: var(--text-muted) !important;
+  font-size: var(--text-xs) !important;
+  text-align: center !important;
+}
+
+#my-extension-root .ai-service-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+#my-extension-root .ai-service-row:last-child {
+  border-bottom: none !important;
+}
+
+#my-extension-root .ai-service-row-name {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  color: var(--text-primary) !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .ai-service-status-btn {
+  padding: 2px var(--space-2) !important;
+  height: auto !important;
+  min-height: 22px !important;
+  min-width: 0 !important;
+  width: auto !important;
+  border-radius: var(--radius-full) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-panel) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+#my-extension-root .ai-service-status-btn.active {
+  background: var(--bg-active) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+
+#my-extension-root .ai-service-row-delete {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--danger) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+}
+
+#my-extension-root .ai-service-row-delete:hover {
+  background: var(--danger-bg) !important;
+  color: var(--danger-hover) !important;
+}
+
+#my-extension-root .ai-provider-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+}
+
+#my-extension-root .ai-provider-add-btn {
+  align-self: flex-start !important;
+}
+
+#my-extension-root .ai-service-delete-section {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+#my-extension-root .ai-provider-delete-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--space-2) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 36px !important;
+  padding: 0 var(--space-4) !important;
+  background: var(--danger-bg) !important;
+  border: 1px solid var(--error-border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--danger) !important;
+  cursor: pointer !important;
+  font-size: var(--text-sm) !important;
+  justify-content: center !important;
+}
+
+#my-extension-root .ai-provider-delete-btn:hover {
+  background: #351c1c !important;
+  color: var(--danger-hover) !important;
+}
+
+/* ─── AI Chat ──────────────────────────────────────────────── */
+
+#my-extension-root .ai-chat-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 260px !important;
+  background: var(--bg-panel) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-subtle) !important;
+  overflow: hidden !important;
+}
+
+#my-extension-root .ai-chat-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: var(--space-3) var(--space-4) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: var(--text-sm) !important;
+}
+
+#my-extension-root .ai-chat-messages {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  padding: var(--space-3) !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+  min-height: 150px !important;
+  background: var(--bg-base) !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#my-extension-root .ai-chat-messages::-webkit-scrollbar {
+  display: none !important;
+}
+
+#my-extension-root .ai-message {
+  display: flex !important;
+  width: 100% !important;
+}
+
+#my-extension-root .ai-message.user {
+  justify-content: flex-end !important;
+}
+
+#my-extension-root .ai-message.assistant {
+  justify-content: flex-start !important;
+}
+
+#my-extension-root .ai-message-content {
+  max-width: 92% !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: var(--text-sm) !important;
+  line-height: 1.5 !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+#my-extension-root .ai-message.user .ai-message-content {
+  background: var(--bg-active) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+#my-extension-root .ai-message.assistant .ai-message-content {
+  background: var(--bg-subtle) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+#my-extension-root .ai-message-content p,
+#my-extension-root .ai-message-content ul,
+#my-extension-root .ai-message-content ol,
+#my-extension-root .ai-message-content pre,
+#my-extension-root .ai-message-content h1,
+#my-extension-root .ai-message-content h2,
+#my-extension-root .ai-message-content h3 {
+  margin: 0 0 6px !important;
+}
+
+#my-extension-root .ai-message-content ul,
+#my-extension-root .ai-message-content ol {
+  padding-left: 18px !important;
+}
+
+#my-extension-root .ai-message-content pre {
+  background: var(--bg-base) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: var(--space-2) !important;
+  overflow-x: auto !important;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+#my-extension-root .ai-message-content code {
+  font-family: var(--font-mono) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+  font-size: 0.92em !important;
+}
+
+#my-extension-root .ai-message-content a {
+  color: #9bb0d0 !important;
+}
+
+#my-extension-root .ai-chat-input-row {
+  display: flex !important;
+  gap: var(--space-2) !important;
+  padding: var(--space-3) !important;
+  border-top: 1px solid var(--border-subtle) !important;
+  background: var(--bg-panel) !important;
+  align-items: stretch !important;
+}
+
+#my-extension-root .ai-chat-input-row input {
+  flex: 1 !important;
+  min-height: 36px !important;
+  max-height: 96px !important;
+  resize: none !important;
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  font-family: inherit !important;
+  font-size: var(--text-sm) !important;
+  outline: none !important;
+  transition: border-color var(--ease) !important;
+}
+
+#my-extension-root .ai-chat-input-row input:focus {
+  border-color: var(--border-focus) !important;
+}
+
+#my-extension-root .ai-send-btn {
+  flex: 0 0 40px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  height: auto !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  align-self: stretch !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-active) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-default) !important;
+  font-size: 16px !important;
+}
+
+#my-extension-root .ai-send-btn:hover:not(:disabled) {
+  background: var(--bg-hover) !important;
+}
+
+#my-extension-root .ai-send-btn:disabled {
+  opacity: 0.4 !important;
+}
+
+#my-extension-root .ai-chat-status,
+#my-extension-root .ai-chat-error {
+  padding: 0 var(--space-3) var(--space-2) !important;
+  font-size: var(--text-xs) !important;
+  color: var(--text-muted) !important;
+}
+
+#my-extension-root .ai-chat-error {
+  color: var(--danger) !important;
+}
+
+/* ─── Code (global inside root) ────────────────────────────── */
+
+#my-extension-root code {
+  background: var(--bg-subtle) !important;
+  color: var(--text-secondary) !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.9em !important;
+}

@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "ClipCrate-V0.4",
+  "version": "0.4",
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage",
+     "identity"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.firebaseio.com/*",  
+    "https://*.firebaseapp.com/*"
+  ],
+  "action": {
+    "default_title": "Inject Div"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
