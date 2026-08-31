@@ -28,8 +28,6 @@ export default function App() {
     type: "",
     visible: false,
   });
-  // null = settings closed, "menu" = main settings list, "cloudSync" =
-  // Share/Cloud Sync page, "aiServices" = AI provider configuration page.
   const [settingsView, setSettingsView] = useState(null);
   const [activeView, setActiveView] = useState("default");
   const [isInitialized, setIsInitialized] = useState(false);
@@ -68,8 +66,6 @@ export default function App() {
     }, 2000);
   };
 
-  // Shared, dedupe-aware slot creator. Used by the clipboard "+" button
-  // AND by the AI assistant when it adds a text clip on the user's behalf.
   const addTextSlot = (rawText) => {
     const text = (rawText || "").trim();
     if (!text) {
@@ -105,16 +101,11 @@ export default function App() {
       }
       window.focus();
       await new Promise((resolve) => setTimeout(resolve, 100));
-
       const clipboardPromise = navigator.clipboard.readText();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Clipboard read timeout")), 3000)
       );
-      const clipboardText = await Promise.race([
-        clipboardPromise,
-        timeoutPromise,
-      ]);
-
+      const clipboardText = await Promise.race([clipboardPromise, timeoutPromise]);
       if (clipboardText && clipboardText.trim()) {
         addTextSlot(clipboardText);
       } else {
@@ -125,8 +116,6 @@ export default function App() {
     }
   };
 
-  // In the AI view, the header's "+" button pastes clipboard text into the
-  // chat input instead of saving a slot.
   const handlePasteClipboardToAi = async () => {
     try {
       if (!navigator.clipboard) {
@@ -135,16 +124,11 @@ export default function App() {
       }
       window.focus();
       await new Promise((resolve) => setTimeout(resolve, 100));
-
       const clipboardPromise = navigator.clipboard.readText();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Clipboard read timeout")), 3000)
       );
-      const clipboardText = await Promise.race([
-        clipboardPromise,
-        timeoutPromise,
-      ]);
-
+      const clipboardText = await Promise.race([clipboardPromise, timeoutPromise]);
       if (clipboardText && clipboardText.trim()) {
         const text = clipboardText.trim();
         setAiInput((prev) => (prev ? `${prev} ${text}` : text));
@@ -186,12 +170,9 @@ export default function App() {
       if (error.name !== "AbortError") {
         showFeedback("EyeDropper failed!", "error");
       }
-      throw error;
     }
   };
 
-  // In the AI view, the eyedropper pastes the picked hex code into the
-  // chat input instead of creating a new palette.
   const handlePickColorToAi = async () => {
     if (!window.EyeDropper) {
       showFeedback("EyeDropper not supported!", "error");
@@ -209,7 +190,6 @@ export default function App() {
       if (error.name !== "AbortError") {
         showFeedback("EyeDropper failed!", "error");
       }
-      throw error;
     }
   };
 
@@ -218,8 +198,6 @@ export default function App() {
     if (rootEl) rootEl.remove();
   };
 
-  // Explicit view switches for the clipboard/brain pill (two distinct
-  // buttons rather than a single toggle).
   const handleShowClipboardView = () => {
     setSettingsView(null);
     setActiveView("default");
@@ -281,7 +259,6 @@ export default function App() {
             return { ...palette, colors: [...palette.colors, color] };
           })
         );
-
         if (wasDuplicate) {
           showFeedback("That color is already in this palette!", "error");
         } else if (wasFull) {
@@ -326,7 +303,6 @@ export default function App() {
             };
           })
         );
-
         if (wasDuplicate) {
           showFeedback("That color is already in this palette!", "error");
         } else {
@@ -345,9 +321,9 @@ export default function App() {
       prev.map((palette, i) =>
         i === paletteIndex
           ? {
-            ...palette,
-            colors: palette.colors.filter((_, ci) => ci !== colorIndex),
-          }
+              ...palette,
+              colors: palette.colors.filter((_, ci) => ci !== colorIndex),
+            }
           : palette
       )
     );
@@ -378,24 +354,19 @@ export default function App() {
   const handleCloseContextMenu = () => setContextMenu(null);
   const handleClosePaletteContextMenu = () => setPaletteContextMenu(null);
 
-  // --- AI assistant "add only" actions -------------------------------
-  // The AI is only ever allowed to ADD data. It has no delete/read
-  // handlers wired to it anywhere, by design, to keep existing data safe.
   const HEX_COLOR_REGEX = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
   const handleAddPaletteFromAi = (title, colors) => {
     const validColors = Array.isArray(colors)
       ? colors
-        .map((c) => (typeof c === "string" ? c.trim() : ""))
-        .filter((c) => HEX_COLOR_REGEX.test(c))
+          .map((c) => (typeof c === "string" ? c.trim() : ""))
+          .filter((c) => HEX_COLOR_REGEX.test(c))
       : [];
     const uniqueColors = [...new Set(validColors)].slice(0, 10);
-
     if (uniqueColors.length === 0) {
       showFeedback("AI didn't provide any valid colors!", "error");
       return false;
     }
-
     const newPalette = {
       title: (title && title.trim()) || `Palette ${colorPalettes.length + 1}`,
       colors: uniqueColors,
@@ -409,26 +380,22 @@ export default function App() {
 
   const handleAddTextSlotFromAi = (text) => addTextSlot(text);
 
-  // Persists any change made in the AI Services settings page (add/remove
-  // provider, key, or model).
   const handleAiProvidersChange = (nextProviders) => {
     setAiProviders(nextProviders);
     saveAiProviders(nextProviders);
   };
 
-  // Called by brain.js when a key comes back 401/403 - marks it disabled,
-  // same as data_store.py's disable_api(), so it's skipped next time.
   const handleAiKeyDisabled = (providerId, keyId) => {
     setAiProviders((prev) => {
       const next = prev.map((p) =>
         p.id !== providerId
           ? p
           : {
-            ...p,
-            apiKeys: p.apiKeys.map((k) =>
-              k.id === keyId ? { ...k, status: "disabled" } : k
-            ),
-          }
+              ...p,
+              apiKeys: p.apiKeys.map((k) =>
+                k.id === keyId ? { ...k, status: "disabled" } : k
+              ),
+            }
       );
       saveAiProviders(next);
       return next;
@@ -439,7 +406,6 @@ export default function App() {
   const handleDragEnd = (result) => {
     const { source, destination, type } = result;
     if (!destination || !source) return;
-
     if (type === "PALETTE") {
       setColorPalettes((prev) => {
         const arr = Array.from(prev);
@@ -502,11 +468,17 @@ export default function App() {
           <Settings
             slots={slots}
             colorPalettes={colorPalettes}
+            aiProviders={aiProviders}
             onBack={() => setSettingsView("menu")}
             onSyncData={(nextSlots, nextPalettes) => {
               setSlots(nextSlots || []);
               setColorPalettes(nextPalettes || []);
             }}
+            onAiProvidersChange={(next) => {
+              setAiProviders(next || []);
+              saveAiProviders(next || []);
+            }}
+            showFeedback={showFeedback}
           />
         </div>
       ) : settingsView === "aiServices" ? (
@@ -546,9 +518,7 @@ export default function App() {
               onShowPaletteContextMenu={handleShowPaletteContextMenu}
               showFeedback={showFeedback}
             />
-
             <div className="line"></div>
-
             <SlotList
               slots={slots}
               onUpdateSlotText={handleUpdateSlotText}
@@ -556,8 +526,6 @@ export default function App() {
               showFeedback={showFeedback}
             />
           </DragDropContext>
-
-          {/* Context menus rendered outside of drag containers */}
           {contextMenu && (
             <ColorContextMenu
               x={contextMenu.x}
@@ -570,7 +538,6 @@ export default function App() {
               showFeedback={showFeedback}
             />
           )}
-
           {paletteContextMenu && (
             <PaletteContextMenu
               x={paletteContextMenu.x}
