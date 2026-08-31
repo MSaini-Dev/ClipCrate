@@ -27,10 +27,11 @@ export default function SettingsMenu({ onSelectShare, onSelectAiServices, onDele
         <p className="about-text">
           ClipCrate saves color palettes and text clips as you browse. Use the eyedropper to grab
           colors into palettes, the "+" to save clipboard text as a clip, and the AI assistant to
-          ask about the extension or have it add a palette/clip for you. Cloud Sync backs your
-          data up to a Sync ID you can restore on another device. AI Services lets you connect
-          your own AI provider (base URL, API key, model) so the assistant has somewhere to send
-          your questions.
+          ask about the extension or have it add a palette/clip for you.
+          Share & Sync supports Chrome Storage Sync, Firebase (default or your own credentials),
+          and JSON export/import. Each mode can share data only, or data + AI credentials.
+          A privacy switch can block all cloud sync. AI Services lets you connect your own
+          AI provider (base URL, API key, model).
         </p>
       </div>
     );
@@ -42,7 +43,7 @@ return (
 
       <button className="settings-menu-row" onClick={onSelectShare}>
         <Share2 size={16} strokeWidth={1.5} />
-        <span>Share</span>
+        <span>Share &amp; Sync</span>
       </button>
 
       <button className="settings-menu-row" onClick={onSelectAiServices}>
