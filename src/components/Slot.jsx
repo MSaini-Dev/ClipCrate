@@ -19,6 +19,14 @@ export default function Slot({ slot, index, onUpdateSlotText, onDeleteSlot, show
     }
   }, [isExpanded]);
 
+  // Keep local edit buffer in sync when parent updates the slot
+  // (e.g. after import or AI add) and the user is not currently editing.
+  useEffect(() => {
+    if (!isExpanded) {
+      setEditedText(slot?.text || "Empty Clip");
+    }
+  }, [slot?.text, isExpanded]);
+
   const handleCopy = (e) => {
     e?.stopPropagation();
     if (slot?.text) {

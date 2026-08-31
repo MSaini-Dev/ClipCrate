@@ -1,183 +1,170 @@
 // src/components/Settings.jsx
-import React, { useState, useEffect } from 'react';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue } from 'firebase/database';
-import { ChevronLeft } from 'lucide-react';
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBQtN6LHPfOfMgakLVdFsVUA6lWdvtl2wE",
-  authDomain: "clipcrate-18294.firebaseapp.com",
-  databaseURL: "https://clipcrate-18294-default-rtdb.firebaseio.com", // ← Add this line
-  
-  projectId: "clipcrate-18294",
-  storageBucket: "clipcrate-18294.appspot.com", // Fixed the storageBucket too
-  messagingSenderId: "1024417797137",
-  appId: "1:1024417797137:web:b7696ed134c88b156d8db0",
-  measurementId: "G-TY87S9EZ73"
-};
-// Initialize Firebase
-// In Settings.jsx
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (err) {
-  console.error("Firebase init error:", err);
-}
+// Personal sync → chrome.storage.sync (same Google account, automatic).
+// Sharing with other people → JSON Export / Import (no cloud credentials needed).
 
-const auth = getAuth(app);
-const db = getDatabase(app);
-export default function Settings({ 
-  slots, 
-  colorPalettes, 
+import React, { useState, useRef } from "react";
+import { pullFromSync } from "../storage";
+
+export default function Settings({
+  slots,
+  colorPalettes,
   onBack,
-  onSyncData
+  onSyncData,
+  showFeedback,
 }) {
-  const [userId, setUserId] = useState('');
-  const [syncId, setSyncId] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState('');
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [status, setStatus] = useState("");
+  const [isWorking, setIsWorking] = useState(false);
+  const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    // Set up auth state listener
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-        setIsSignedIn(true);
-      } else {
-        setIsSignedIn(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleSignIn = async () => {
+  // ---------- Same-account sync (chrome.storage.sync) ----------
+  const handlePullFromOtherDevices = async () => {
+    setIsWorking(true);
+    setStatus("Pulling from your other devices…");
     try {
-      const userCredential = await signInAnonymously(auth);
-      setUserId(userCredential.user.uid);
-      setSyncStatus('Signed in anonymously');
-    } catch (error) {
-      setSyncStatus(`Sign-in error: ${error.message}`);
+      const { slots: remoteSlots, colorPalettes: remotePalettes } =
+        await pullFromSync();
+      onSyncData(remoteSlots, remotePalettes);
+      setStatus(
+        remoteSlots.length || remotePalettes.length
+          ? "Updated from your other devices."
+          : "No data found on other devices yet."
+      );
+      showFeedback?.("Synced from other devices", "success");
+    } catch (err) {
+      setStatus("Could not reach Chrome sync.");
+      showFeedback?.("Sync failed", "error");
+    } finally {
+      setIsWorking(false);
     }
   };
-const handleSyncToCloud = async () => {
-  if (!isSignedIn) {
-    setSyncStatus('Please sign in first');
-    return;
-  }
 
-  setIsSyncing(true);
-  setSyncStatus('Syncing to cloud...');
-
-  try {
-    // Create the data structure Firebase expects
-    const syncData = {
+  // ---------- Export JSON ----------
+  const handleExport = () => {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
       slots: slots || [],
       colorPalettes: colorPalettes || [],
-      lastUpdated: Date.now()
     };
-
-    console.log("Attempting to sync:", syncData); // Debug log
-
-    const userRef = ref(db, `users/${userId}`);
-    await set(userRef, { data: syncData }); // Note: Changed structure
-
-    // Verify write
-    onValue(userRef, (snapshot) => {
-      const savedData = snapshot.val();
-      console.log("Verification data:", savedData);
-      if (savedData?.data) {
-        setSyncStatus('Sync successful!');
-      } else {
-        setSyncStatus('Sync completed but verification failed');
-      }
-    }, { onlyOnce: true });
-
-  } catch (error) {
-    console.error("Full sync error:", error);
-    setSyncStatus(`Sync failed: ${error.message}`);
-  } finally {
-    setIsSyncing(false);
-  }
-};
-  const handleSyncFromCloud = async () => {
-  if (!syncId) return;
-
-  setIsSyncing(true);
-  setSyncStatus('Syncing from cloud...');
-
-  try {
-    const userRef = ref(db, `users/${syncId}`);
-    onValue(userRef, (snapshot) => {
-      const remoteData = snapshot.val();
-      console.log("Received data:", remoteData); // Debug log
-
-      if (remoteData?.data) {
-        onSyncData(remoteData.data.slots, remoteData.data.colorPalettes);
-        setSyncStatus('Sync successful!');
-      } else {
-        setSyncStatus('No data found at this location');
-      }
-    }, { onlyOnce: true });
-
-  } catch (error) {
-    setSyncStatus(`Sync failed: ${error.message}`);
-  } finally {
-    setIsSyncing(false);
-  }
-};
-  const iconProps = {
-    size: 16,
-    strokeWidth: 1.5
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `clipcrate-backup-${new Date()
+      .toISOString()
+      .slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setStatus("Backup downloaded.");
+    showFeedback?.("Exported!", "success");
   };
+
+  // ---------- Import JSON ----------
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsWorking(true);
+    setStatus("Reading file…");
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const nextSlots = Array.isArray(parsed.slots) ? parsed.slots : [];
+        const nextPalettes = Array.isArray(parsed.colorPalettes)
+          ? parsed.colorPalettes
+          : Array.isArray(parsed.palettes)
+          ? parsed.palettes
+          : [];
+
+        // Basic shape check
+        if (!nextSlots.length && !nextPalettes.length) {
+          setStatus("File contains no clips or palettes.");
+          showFeedback?.("Nothing to import", "error");
+          return;
+        }
+
+        onSyncData(nextSlots, nextPalettes);
+        setStatus(
+          `Imported ${nextSlots.length} clip(s) and ${nextPalettes.length} palette(s).`
+        );
+        showFeedback?.("Import successful!", "success");
+      } catch (err) {
+        setStatus("Invalid JSON file.");
+        showFeedback?.("Import failed – bad file", "error");
+      } finally {
+        setIsWorking(false);
+        // Reset so the same file can be chosen again
+        event.target.value = "";
+      }
+    };
+    reader.onerror = () => {
+      setStatus("Could not read the file.");
+      showFeedback?.("Import failed", "error");
+      setIsWorking(false);
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="settings-page">
-
-
       <div className="settings-content">
-        {!isSignedIn ? (
-          <div className="auth-section">
-            <p>Sign in to enable cloud sync:</p>
-            <button onClick={handleSignIn} disabled={isSyncing}>
-              Sign In Anonymously
+        {/* Same Google account */}
+        <div className="sync-section">
+          <h4>Same Google account</h4>
+          <p className="settings-hint">
+            ClipCrate automatically keeps your data in sync across devices
+            signed into the same Google account (via Chrome’s built-in sync).
+            Use the button below if you just signed in on a new device and
+            want to pull the latest data right now.
+          </p>
+          <button
+            onClick={handlePullFromOtherDevices}
+            disabled={isWorking}
+          >
+            {isWorking ? "Working…" : "Pull from other devices"}
+          </button>
+        </div>
+
+        <div className="line" style={{ margin: "12px 0" }} />
+
+        {/* Export / Import for other people or offline backup */}
+        <div className="sync-section">
+          <h4>Share or backup (JSON)</h4>
+          <p className="settings-hint">
+            Export a file you can send to another person or keep as a backup.
+            Import replaces the current clips and palettes with the contents
+            of the file.
+          </p>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button onClick={handleExport} disabled={isWorking}>
+              Export JSON
+            </button>
+            <button onClick={handleImportClick} disabled={isWorking}>
+              Import JSON
             </button>
           </div>
-        ) : (
-          <>
-            <div className="sync-section">
-              <p>Your Sync ID: <code>{userId}</code></p>
-              <button 
-                onClick={handleSyncToCloud} 
-                disabled={isSyncing}
-              >
-                Sync to Cloud
-              </button>
-            </div>
-
-            <div className="sync-section">
-              <p>Sync from another device:</p>
-              <input
-                type="text"
-                value={syncId}
-                onChange={(e) => setSyncId(e.target.value)}
-                placeholder="Enter Sync ID"
-                disabled={isSyncing}
-              />
-              <button 
-                onClick={handleSyncFromCloud} 
-                disabled={isSyncing || !syncId}
-              >
-                Sync from Cloud
-              </button>
-            </div>
-          </>
-        )}
-
-        <div className="sync-status">
-          {syncStatus && <p>{syncStatus}</p>}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            style={{ display: "none" }}
+            onChange={handleFileSelected}
+          />
         </div>
+
+        {status && (
+          <div className="sync-status">
+            <p>{status}</p>
+          </div>
+        )}
       </div>
     </div>
   );

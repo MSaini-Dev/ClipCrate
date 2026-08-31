@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import SlotList from "./components/SlotList";
@@ -28,8 +27,8 @@ export default function App() {
     type: "",
     visible: false,
   });
-  // null = settings closed, "menu" = main settings list, "cloudSync" =
-  // Share/Cloud Sync page, "aiServices" = AI provider configuration page.
+  // null = settings closed, "menu" = main settings list,
+  // "cloudSync" = Share & Backup page, "aiServices" = AI provider page.
   const [settingsView, setSettingsView] = useState(null);
   const [activeView, setActiveView] = useState("default");
   const [isInitialized, setIsInitialized] = useState(false);
@@ -76,25 +75,31 @@ export default function App() {
       showFeedback("Nothing to add!", "error");
       return false;
     }
-    let wasDuplicate = false;
+
+    let added = false;
     setSlots((prevSlots) => {
       if (prevSlots.some((s) => s.text === text)) {
-        wasDuplicate = true;
         return prevSlots;
       }
       const uniqueId = `slot_${Date.now()}_${Math.random()
         .toString(36)
         .substr(2, 9)}`;
       const newSlot = { id: uniqueId, text, timestamp: Date.now() };
-      return [newSlot, ...prevSlots.slice(0, 9)];
+      added = true;
+      // Keep at most 10 clips
+      return [newSlot, ...prevSlots].slice(0, 10);
     });
 
-    if (wasDuplicate) {
-      showFeedback("That clip is already saved!", "error");
-      return false;
-    }
-    showFeedback("Clip added!", "success");
-    return true;
+    // Feedback is shown after the state updater runs; small delay keeps it reliable
+    setTimeout(() => {
+      if (added) {
+        showFeedback("Clip added!", "success");
+      } else {
+        showFeedback("That clip is already saved!", "error");
+      }
+    }, 0);
+
+    return added;
   };
 
   const handleAddClip = async () => {
@@ -174,6 +179,7 @@ export default function App() {
       if (result && result.sRGBHex) {
         const color = result.sRGBHex;
         const newPalette = {
+          id: `palette_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: `Palette ${colorPalettes.length + 1}`,
           colors: [color],
           collapsed: false,
@@ -183,10 +189,10 @@ export default function App() {
         showFeedback(`New palette with ${color} created!`, "success");
       }
     } catch (error) {
+      // User cancelled (AbortError) or real failure – never re-throw
       if (error.name !== "AbortError") {
         showFeedback("EyeDropper failed!", "error");
       }
-      throw error;
     }
   };
 
@@ -209,7 +215,6 @@ export default function App() {
       if (error.name !== "AbortError") {
         showFeedback("EyeDropper failed!", "error");
       }
-      throw error;
     }
   };
 
@@ -218,8 +223,6 @@ export default function App() {
     if (rootEl) rootEl.remove();
   };
 
-  // Explicit view switches for the clipboard/brain pill (two distinct
-  // buttons rather than a single toggle).
   const handleShowClipboardView = () => {
     setSettingsView(null);
     setActiveView("default");
@@ -345,9 +348,9 @@ export default function App() {
       prev.map((palette, i) =>
         i === paletteIndex
           ? {
-            ...palette,
-            colors: palette.colors.filter((_, ci) => ci !== colorIndex),
-          }
+              ...palette,
+              colors: palette.colors.filter((_, ci) => ci !== colorIndex),
+            }
           : palette
       )
     );
@@ -379,15 +382,13 @@ export default function App() {
   const handleClosePaletteContextMenu = () => setPaletteContextMenu(null);
 
   // --- AI assistant "add only" actions -------------------------------
-  // The AI is only ever allowed to ADD data. It has no delete/read
-  // handlers wired to it anywhere, by design, to keep existing data safe.
   const HEX_COLOR_REGEX = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
   const handleAddPaletteFromAi = (title, colors) => {
     const validColors = Array.isArray(colors)
       ? colors
-        .map((c) => (typeof c === "string" ? c.trim() : ""))
-        .filter((c) => HEX_COLOR_REGEX.test(c))
+          .map((c) => (typeof c === "string" ? c.trim() : ""))
+          .filter((c) => HEX_COLOR_REGEX.test(c))
       : [];
     const uniqueColors = [...new Set(validColors)].slice(0, 10);
 
@@ -397,6 +398,7 @@ export default function App() {
     }
 
     const newPalette = {
+      id: `palette_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: (title && title.trim()) || `Palette ${colorPalettes.length + 1}`,
       colors: uniqueColors,
       collapsed: false,
@@ -409,31 +411,30 @@ export default function App() {
 
   const handleAddTextSlotFromAi = (text) => addTextSlot(text);
 
-  // Persists any change made in the AI Services settings page (add/remove
-  // provider, key, or model).
   const handleAiProvidersChange = (nextProviders) => {
     setAiProviders(nextProviders);
     saveAiProviders(nextProviders);
   };
 
-  // Called by brain.js when a key comes back 401/403 - marks it disabled,
-  // same as data_store.py's disable_api(), so it's skipped next time.
   const handleAiKeyDisabled = (providerId, keyId) => {
     setAiProviders((prev) => {
       const next = prev.map((p) =>
         p.id !== providerId
           ? p
           : {
-            ...p,
-            apiKeys: p.apiKeys.map((k) =>
-              k.id === keyId ? { ...k, status: "disabled" } : k
-            ),
-          }
+              ...p,
+              apiKeys: p.apiKeys.map((k) =>
+                k.id === keyId ? { ...k, status: "disabled" } : k
+              ),
+            }
       );
       saveAiProviders(next);
       return next;
     });
-    showFeedback("An AI provider key was rejected and has been disabled.", "error");
+    showFeedback(
+      "An AI provider key was rejected and has been disabled.",
+      "error"
+    );
   };
 
   const handleDragEnd = (result) => {
@@ -445,7 +446,6 @@ export default function App() {
         const arr = Array.from(prev);
         const [moved] = arr.splice(source.index, 1);
         arr.splice(destination.index, 0, moved);
-        saveColorPalettes(arr);
         return arr;
       });
     } else if (type.startsWith("COLOR")) {
@@ -457,7 +457,6 @@ export default function App() {
         const [moved] = colors.splice(source.index, 1);
         colors.splice(destination.index, 0, moved);
         arr[paletteIndex] = { ...arr[paletteIndex], colors };
-        saveColorPalettes(arr);
         return arr;
       });
     } else if (type === "SLOT") {
@@ -465,7 +464,6 @@ export default function App() {
         const arr = Array.from(prev);
         const [moved] = arr.splice(source.index, 1);
         arr.splice(destination.index, 0, moved);
-        saveSlots(arr);
         return arr;
       });
     }
@@ -475,7 +473,9 @@ export default function App() {
     <div className="app">
       <Header
         onAdd={activeView === "ai" ? handlePasteClipboardToAi : handleAddClip}
-        onEyeDropper={activeView === "ai" ? handlePickColorToAi : handleEyeDropper}
+        onEyeDropper={
+          activeView === "ai" ? handlePickColorToAi : handleEyeDropper
+        }
         activeView={activeView}
         onShowClipboardView={handleShowClipboardView}
         onShowAiView={handleShowAiView}
@@ -507,6 +507,7 @@ export default function App() {
               setSlots(nextSlots || []);
               setColorPalettes(nextPalettes || []);
             }}
+            showFeedback={showFeedback}
           />
         </div>
       ) : settingsView === "aiServices" ? (
@@ -557,7 +558,6 @@ export default function App() {
             />
           </DragDropContext>
 
-          {/* Context menus rendered outside of drag containers */}
           {contextMenu && (
             <ColorContextMenu
               x={contextMenu.x}
@@ -580,6 +580,13 @@ export default function App() {
               onPaletteDelete={handleDeletePalette}
             />
           )}
+        </div>
+      )}
+
+      {/* Simple feedback toast */}
+      {feedback.visible && (
+        <div className={`feedback-toast ${feedback.type}`}>
+          {feedback.message}
         </div>
       )}
     </div>
