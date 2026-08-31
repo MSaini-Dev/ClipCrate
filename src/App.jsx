@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import SlotList from "./components/SlotList";
@@ -7,6 +6,7 @@ import ColorContextMenu from "./components/ColorContextMenu";
 import PaletteContextMenu from "./components/PaletteContextMenu";
 import Settings from "./components/Settings";
 import SettingsMenu from "./components/SettingsMenu";
+import ProfilesSettings from "./features/profiles/ProfilesSettings";
 import AiServices from "./components/AiServices";
 import AiChatView from "./components/AiChatView";
 import { DragDropContext } from "react-beautiful-dnd";
@@ -17,17 +17,17 @@ import {
   saveColorPalettes,
   saveSlots,
 } from "./storage";
+import {
+  getActiveProfile,
+  saveActiveProfileData,
+} from "./shared/lib/profiles";
 
 export default function App() {
   const [slots, setSlots] = useState([]);
   const [colorPalettes, setColorPalettes] = useState([]);
   const [contextMenu, setContextMenu] = useState(null);
   const [paletteContextMenu, setPaletteContextMenu] = useState(null);
-  const [feedback, setFeedback] = useState({
-    message: "",
-    type: "",
-    visible: false,
-  });
+  const [feedback, setFeedback] = useState({ message: "", type: "", visible: false });
   const [settingsView, setSettingsView] = useState(null);
   const [activeView, setActiveView] = useState("default");
   const [isInitialized, setIsInitialized] = useState(false);
@@ -37,33 +37,53 @@ export default function App() {
 
   useEffect(() => {
     const initializeData = async () => {
-      await Promise.all([
-        getSlots(setSlots),
-        getColorPalettes(setColorPalettes),
-        getAiProviders(setAiProviders),
-      ]);
+      try {
+        const profile = await getActiveProfile();
+        if (profile) {
+          setSlots(profile.slots || []);
+          setColorPalettes(profile.colorPalettes || []);
+          setAiProviders(profile.aiProviders || []);
+        } else {
+          await Promise.all([
+            getSlots(setSlots),
+            getColorPalettes(setColorPalettes),
+            getAiProviders(setAiProviders),
+          ]);
+        }
+      } catch {
+        await Promise.all([
+          getSlots(setSlots),
+          getColorPalettes(setColorPalettes),
+          getAiProviders(setAiProviders),
+        ]);
+      }
       setIsInitialized(true);
     };
     initializeData();
   }, []);
 
   useEffect(() => {
-    if (isInitialized) {
-      saveSlots(slots);
-    }
+    if (!isInitialized) return;
+    saveSlots(slots);
+    saveActiveProfileData({ slots, colorPalettes, aiProviders });
   }, [slots, isInitialized]);
 
   useEffect(() => {
-    if (isInitialized) {
-      saveColorPalettes(colorPalettes);
-    }
+    if (!isInitialized) return;
+    saveColorPalettes(colorPalettes);
+    saveActiveProfileData({ slots, colorPalettes, aiProviders });
   }, [colorPalettes, isInitialized]);
 
   const showFeedback = (message, type) => {
     setFeedback({ message, type, visible: true });
-    setTimeout(() => {
-      setFeedback({ message: "", type: "", visible: false });
-    }, 2000);
+    setTimeout(() => setFeedback({ message: "", type: "", visible: false }), 2000);
+  };
+
+  const handleProfileSwitched = (profile) => {
+    if (!profile) return;
+    setSlots(profile.slots || []);
+    setColorPalettes(profile.colorPalettes || []);
+    setAiProviders(profile.aiProviders || []);
   };
 
   const addTextSlot = (rawText) => {
@@ -78,13 +98,9 @@ export default function App() {
         wasDuplicate = true;
         return prevSlots;
       }
-      const uniqueId = `slot_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-      const newSlot = { id: uniqueId, text, timestamp: Date.now() };
-      return [newSlot, ...prevSlots.slice(0, 9)];
+      const uniqueId = `slot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      return [{ id: uniqueId, text, timestamp: Date.now() }, ...prevSlots.slice(0, 9)];
     });
-
     if (wasDuplicate) {
       showFeedback("That clip is already saved!", "error");
       return false;
@@ -95,48 +111,35 @@ export default function App() {
 
   const handleAddClip = async () => {
     try {
-      if (!navigator.clipboard) {
-        showFeedback("Clipboard API not available!", "error");
-        return;
-      }
+      if (!navigator.clipboard) return showFeedback("Clipboard API not available!", "error");
       window.focus();
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      const clipboardPromise = navigator.clipboard.readText();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Clipboard read timeout")), 3000)
-      );
-      const clipboardText = await Promise.race([clipboardPromise, timeoutPromise]);
-      if (clipboardText && clipboardText.trim()) {
-        addTextSlot(clipboardText);
-      } else {
-        showFeedback("Clipboard is empty!", "error");
-      }
-    } catch (error) {
+      await new Promise((r) => setTimeout(r, 100));
+      const text = await Promise.race([
+        navigator.clipboard.readText(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),
+      ]);
+      if (text && text.trim()) addTextSlot(text);
+      else showFeedback("Clipboard is empty!", "error");
+    } catch {
       showFeedback("Failed to read clipboard!", "error");
     }
   };
 
   const handlePasteClipboardToAi = async () => {
     try {
-      if (!navigator.clipboard) {
-        showFeedback("Clipboard API not available!", "error");
-        return;
-      }
+      if (!navigator.clipboard) return showFeedback("Clipboard API not available!", "error");
       window.focus();
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      const clipboardPromise = navigator.clipboard.readText();
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Clipboard read timeout")), 3000)
-      );
-      const clipboardText = await Promise.race([clipboardPromise, timeoutPromise]);
-      if (clipboardText && clipboardText.trim()) {
-        const text = clipboardText.trim();
-        setAiInput((prev) => (prev ? `${prev} ${text}` : text));
+      await new Promise((r) => setTimeout(r, 100));
+      const text = await Promise.race([
+        navigator.clipboard.readText(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 3000)),
+      ]);
+      if (text && text.trim()) {
+        const t = text.trim();
+        setAiInput((prev) => (prev ? `${prev} ${t}` : t));
         showFeedback("Pasted into chat!", "success");
-      } else {
-        showFeedback("Clipboard is empty!", "error");
-      }
-    } catch (error) {
+      } else showFeedback("Clipboard is empty!", "error");
+    } catch {
       showFeedback("Failed to read clipboard!", "error");
     }
   };
@@ -148,183 +151,104 @@ export default function App() {
   };
 
   const handleEyeDropper = async () => {
-    if (!window.EyeDropper) {
-      showFeedback("EyeDropper not supported!", "error");
-      return;
-    }
+    if (!window.EyeDropper) return showFeedback("EyeDropper not supported!", "error");
     try {
-      const eyeDropper = new EyeDropper();
-      const result = await eyeDropper.open();
-      if (result && result.sRGBHex) {
-        const color = result.sRGBHex;
-        const newPalette = {
-          title: `Palette ${colorPalettes.length + 1}`,
-          colors: [color],
-          collapsed: false,
-          timestamp: Date.now(),
-        };
-        setColorPalettes((prev) => [newPalette, ...prev]);
-        showFeedback(`New palette with ${color} created!`, "success");
+      const result = await new EyeDropper().open();
+      if (result?.sRGBHex) {
+        setColorPalettes((prev) => [
+          { title: `Palette ${prev.length + 1}`, colors: [result.sRGBHex], collapsed: false, timestamp: Date.now() },
+          ...prev,
+        ]);
+        showFeedback(`New palette with ${result.sRGBHex} created!`, "success");
       }
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        showFeedback("EyeDropper failed!", "error");
-      }
+    } catch (e) {
+      if (e.name !== "AbortError") showFeedback("EyeDropper failed!", "error");
     }
   };
 
   const handlePickColorToAi = async () => {
-    if (!window.EyeDropper) {
-      showFeedback("EyeDropper not supported!", "error");
-      return;
-    }
+    if (!window.EyeDropper) return showFeedback("EyeDropper not supported!", "error");
     try {
-      const eyeDropper = new EyeDropper();
-      const result = await eyeDropper.open();
-      if (result && result.sRGBHex) {
-        const color = result.sRGBHex;
-        setAiInput((prev) => (prev ? `${prev} ${color}` : color));
-        showFeedback(`Pasted ${color} into chat!`, "success");
+      const result = await new EyeDropper().open();
+      if (result?.sRGBHex) {
+        setAiInput((prev) => (prev ? `${prev} ${result.sRGBHex}` : result.sRGBHex));
+        showFeedback(`Pasted ${result.sRGBHex} into chat!`, "success");
       }
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        showFeedback("EyeDropper failed!", "error");
-      }
+    } catch (e) {
+      if (e.name !== "AbortError") showFeedback("EyeDropper failed!", "error");
     }
   };
 
-  const handleClose = () => {
-    const rootEl = document.getElementById("my-extension-root");
-    if (rootEl) rootEl.remove();
-  };
-
-  const handleShowClipboardView = () => {
-    setSettingsView(null);
-    setActiveView("default");
-  };
-  const handleShowAiView = () => {
-    setSettingsView(null);
-    setActiveView("ai");
-  };
+  const handleClose = () => document.getElementById("my-extension-root")?.remove();
+  const handleShowClipboardView = () => { setSettingsView(null); setActiveView("default"); };
+  const handleShowAiView = () => { setSettingsView(null); setActiveView("ai"); };
 
   const handleUpdateSlotText = (index, newText) => {
-    setSlots((prevSlots) =>
-      prevSlots.map((slot, i) =>
-        i === index ? { ...slot, text: newText, timestamp: Date.now() } : slot
-      )
-    );
+    setSlots((prev) => prev.map((s, i) => (i === index ? { ...s, text: newText, timestamp: Date.now() } : s)));
   };
-
   const handleDeleteSlot = (index) => {
-    setSlots((prevSlots) => prevSlots.filter((_, i) => i !== index));
+    setSlots((prev) => prev.filter((_, i) => i !== index));
     showFeedback("Clip deleted!", "success");
   };
-
   const handleToggleCollapse = (index) => {
-    setColorPalettes((prev) =>
-      prev.map((palette, i) =>
-        i === index ? { ...palette, collapsed: !palette.collapsed } : palette
-      )
-    );
+    setColorPalettes((prev) => prev.map((p, i) => (i === index ? { ...p, collapsed: !p.collapsed } : p)));
   };
-
   const handleDeletePalette = (index) => {
     setColorPalettes((prev) => prev.filter((_, i) => i !== index));
     showFeedback("Palette deleted!", "success");
   };
 
   const handleAddColor = async (paletteIndex) => {
-    if (!window.EyeDropper) {
-      showFeedback("EyeDropper not supported!", "error");
-      return;
-    }
+    if (!window.EyeDropper) return showFeedback("EyeDropper not supported!", "error");
     try {
-      const eyeDropper = new EyeDropper();
-      const result = await eyeDropper.open();
-      if (result && result.sRGBHex) {
-        const color = result.sRGBHex;
-        let wasDuplicate = false;
-        let wasFull = false;
-        setColorPalettes((prev) =>
-          prev.map((palette, i) => {
-            if (i !== paletteIndex) return palette;
-            if (palette.colors.includes(color)) {
-              wasDuplicate = true;
-              return palette;
-            }
-            if (palette.colors.length >= 10) {
-              wasFull = true;
-              return palette;
-            }
-            return { ...palette, colors: [...palette.colors, color] };
-          })
-        );
-        if (wasDuplicate) {
-          showFeedback("That color is already in this palette!", "error");
-        } else if (wasFull) {
-          showFeedback("Palette is full (10 colors max)!", "error");
-        } else {
-          showFeedback(`Color ${color} added!`, "success");
-        }
-      }
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        showFeedback("EyeDropper failed!", "error");
-      }
+      const result = await new EyeDropper().open();
+      if (!result?.sRGBHex) return;
+      const color = result.sRGBHex;
+      let wasDuplicate = false, wasFull = false;
+      setColorPalettes((prev) =>
+        prev.map((palette, i) => {
+          if (i !== paletteIndex) return palette;
+          if (palette.colors.includes(color)) { wasDuplicate = true; return palette; }
+          if (palette.colors.length >= 10) { wasFull = true; return palette; }
+          return { ...palette, colors: [...palette.colors, color] };
+        })
+      );
+      if (wasDuplicate) showFeedback("That color is already in this palette!", "error");
+      else if (wasFull) showFeedback("Palette is full (10 colors max)!", "error");
+      else showFeedback(`Color ${color} added!`, "success");
+    } catch (e) {
+      if (e.name !== "AbortError") showFeedback("EyeDropper failed!", "error");
     }
   };
 
   const handleReplaceColor = async (paletteIndex, colorIndex) => {
-    if (!window.EyeDropper) {
-      showFeedback("EyeDropper not supported!", "error");
-      return;
-    }
+    if (!window.EyeDropper) return showFeedback("EyeDropper not supported!", "error");
     try {
-      const eyeDropper = new EyeDropper();
-      const result = await eyeDropper.open();
-      if (result && result.sRGBHex) {
-        const color = result.sRGBHex;
-        let wasDuplicate = false;
-        setColorPalettes((prev) =>
-          prev.map((palette, i) => {
-            if (i !== paletteIndex) return palette;
-            const existsElsewhere = palette.colors.some(
-              (c, ci) => ci !== colorIndex && c === color
-            );
-            if (existsElsewhere) {
-              wasDuplicate = true;
-              return palette;
-            }
-            return {
-              ...palette,
-              colors: palette.colors.map((c, ci) =>
-                ci === colorIndex ? color : c
-              ),
-            };
-          })
-        );
-        if (wasDuplicate) {
-          showFeedback("That color is already in this palette!", "error");
-        } else {
-          showFeedback(`Color replaced with ${color}!`, "success");
-        }
-      }
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        showFeedback("EyeDropper failed!", "error");
-      }
+      const result = await new EyeDropper().open();
+      if (!result?.sRGBHex) return;
+      const color = result.sRGBHex;
+      let wasDuplicate = false;
+      setColorPalettes((prev) =>
+        prev.map((palette, i) => {
+          if (i !== paletteIndex) return palette;
+          if (palette.colors.some((c, ci) => ci !== colorIndex && c === color)) {
+            wasDuplicate = true;
+            return palette;
+          }
+          return { ...palette, colors: palette.colors.map((c, ci) => (ci === colorIndex ? color : c)) };
+        })
+      );
+      if (wasDuplicate) showFeedback("That color is already in this palette!", "error");
+      else showFeedback(`Color replaced with ${color}!`, "success");
+    } catch (e) {
+      if (e.name !== "AbortError") showFeedback("EyeDropper failed!", "error");
     }
   };
 
   const handleDeleteColor = (paletteIndex, colorIndex) => {
     setColorPalettes((prev) =>
       prev.map((palette, i) =>
-        i === paletteIndex
-          ? {
-              ...palette,
-              colors: palette.colors.filter((_, ci) => ci !== colorIndex),
-            }
-          : palette
+        i === paletteIndex ? { ...palette, colors: palette.colors.filter((_, ci) => ci !== colorIndex) } : palette
       )
     );
     showFeedback("Color deleted!", "success");
@@ -333,56 +257,35 @@ export default function App() {
 
   const handleShowContextMenu = (event, color, paletteIndex, colorIndex) => {
     event.preventDefault();
-    setContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-      color,
-      paletteIndex,
-      colorIndex,
-    });
+    setContextMenu({ x: event.clientX, y: event.clientY, color, paletteIndex, colorIndex });
   };
-
   const handleShowPaletteContextMenu = (event, paletteIndex) => {
     event.preventDefault();
-    setPaletteContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-      paletteIndex,
-    });
+    setPaletteContextMenu({ x: event.clientX, y: event.clientY, paletteIndex });
   };
 
-  const handleCloseContextMenu = () => setContextMenu(null);
-  const handleClosePaletteContextMenu = () => setPaletteContextMenu(null);
-
   const HEX_COLOR_REGEX = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
-
   const handleAddPaletteFromAi = (title, colors) => {
-    const validColors = Array.isArray(colors)
-      ? colors
-          .map((c) => (typeof c === "string" ? c.trim() : ""))
-          .filter((c) => HEX_COLOR_REGEX.test(c))
+    const valid = Array.isArray(colors)
+      ? colors.map((c) => (typeof c === "string" ? c.trim() : "")).filter((c) => HEX_COLOR_REGEX.test(c))
       : [];
-    const uniqueColors = [...new Set(validColors)].slice(0, 10);
-    if (uniqueColors.length === 0) {
+    const unique = [...new Set(valid)].slice(0, 10);
+    if (!unique.length) {
       showFeedback("AI didn't provide any valid colors!", "error");
       return false;
     }
-    const newPalette = {
-      title: (title && title.trim()) || `Palette ${colorPalettes.length + 1}`,
-      colors: uniqueColors,
-      collapsed: false,
-      timestamp: Date.now(),
-    };
-    setColorPalettes((prev) => [newPalette, ...prev]);
+    setColorPalettes((prev) => [
+      { title: (title && title.trim()) || `Palette ${prev.length + 1}`, colors: unique, collapsed: false, timestamp: Date.now() },
+      ...prev,
+    ]);
     showFeedback("AI added a palette!", "success");
     return true;
   };
 
-  const handleAddTextSlotFromAi = (text) => addTextSlot(text);
-
-  const handleAiProvidersChange = (nextProviders) => {
-    setAiProviders(nextProviders);
-    saveAiProviders(nextProviders);
+  const handleAiProvidersChange = (next) => {
+    setAiProviders(next);
+    saveAiProviders(next);
+    saveActiveProfileData({ slots, colorPalettes, aiProviders: next });
   };
 
   const handleAiKeyDisabled = (providerId, keyId) => {
@@ -390,14 +293,10 @@ export default function App() {
       const next = prev.map((p) =>
         p.id !== providerId
           ? p
-          : {
-              ...p,
-              apiKeys: p.apiKeys.map((k) =>
-                k.id === keyId ? { ...k, status: "disabled" } : k
-              ),
-            }
+          : { ...p, apiKeys: p.apiKeys.map((k) => (k.id === keyId ? { ...k, status: "disabled" } : k)) }
       );
       saveAiProviders(next);
+      saveActiveProfileData({ slots, colorPalettes, aiProviders: next });
       return next;
     });
     showFeedback("An AI provider key was rejected and has been disabled.", "error");
@@ -447,18 +346,16 @@ export default function App() {
         onShowAiView={handleShowAiView}
         showFeedback={showFeedback}
         settingsOpen={settingsView !== null}
-        onShowSettings={() =>
-          setSettingsView((prev) => (prev === null ? "menu" : null))
-        }
+        onShowSettings={() => setSettingsView((prev) => (prev === null ? "menu" : null))}
         onClose={handleClose}
       />
-
       <div className="line"></div>
 
       {settingsView === "menu" ? (
         <div className="scrollbox">
           <SettingsMenu
             onSelectShare={() => setSettingsView("cloudSync")}
+            onSelectProfiles={() => setSettingsView("profiles")}
             onSelectAiServices={() => setSettingsView("aiServices")}
             onDeleteAll={handleClearAll}
           />
@@ -481,6 +378,10 @@ export default function App() {
             showFeedback={showFeedback}
           />
         </div>
+      ) : settingsView === "profiles" ? (
+        <div className="scrollbox">
+          <ProfilesSettings showFeedback={showFeedback} onProfileSwitched={handleProfileSwitched} />
+        </div>
       ) : settingsView === "aiServices" ? (
         <div className="scrollbox">
           <AiServices
@@ -498,7 +399,7 @@ export default function App() {
             messages={aiMessages}
             onMessagesChange={setAiMessages}
             onAddPalette={handleAddPaletteFromAi}
-            onAddTextSlot={handleAddTextSlotFromAi}
+            onAddTextSlot={addTextSlot}
             providers={aiProviders}
             onKeyDisabled={handleAiKeyDisabled}
             showFeedback={showFeedback}
@@ -533,7 +434,7 @@ export default function App() {
               color={contextMenu.color}
               paletteIndex={contextMenu.paletteIndex}
               colorIndex={contextMenu.colorIndex}
-              onClose={handleCloseContextMenu}
+              onClose={() => setContextMenu(null)}
               onColorDelete={handleDeleteColor}
               showFeedback={showFeedback}
             />
@@ -543,7 +444,7 @@ export default function App() {
               x={paletteContextMenu.x}
               y={paletteContextMenu.y}
               paletteIndex={paletteContextMenu.paletteIndex}
-              onClose={handleClosePaletteContextMenu}
+              onClose={() => setPaletteContextMenu(null)}
               onPaletteDelete={handleDeletePalette}
             />
           )}
