@@ -1,0 +1,60 @@
+/* Professional settings UI — import or append after contentStyle.css */
+
+#my-extension-root .cc-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--space-3) !important;
+  padding: var(--space-4) !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+}
+#my-extension-root .cc-section-header { display: flex !important; flex-direction: column !important; gap: 2px !important; }
+#my-extension-root .cc-section-title { margin: 0 !important; font-size: var(--text-sm) !important; font-weight: 600 !important; color: var(--text-primary) !important; }
+#my-extension-root .cc-section-desc { margin: 0 !important; font-size: var(--text-xs) !important; color: var(--text-muted) !important; line-height: 1.4 !important; }
+#my-extension-root .cc-section-body { display: flex !important; flex-direction: column !important; gap: var(--space-3) !important; }
+
+#my-extension-root .cc-toggle-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: var(--space-3) !important; cursor: pointer !important; }
+#my-extension-root .cc-toggle-text { display: flex !important; flex-direction: column !important; gap: 1px !important; min-width: 0 !important; }
+#my-extension-root .cc-toggle-label { font-size: var(--text-sm) !important; color: var(--text-primary) !important; }
+#my-extension-root .cc-toggle-hint { font-size: 10px !important; color: var(--text-muted) !important; }
+#my-extension-root .cc-toggle { width: 40px !important; min-width: 40px !important; height: 22px !important; border-radius: var(--radius-full) !important; background: var(--bg-subtle) !important; border: 1px solid var(--border-default) !important; padding: 2px !important; position: relative !important; flex-shrink: 0 !important; }
+#my-extension-root .cc-toggle.is-on { background: var(--bg-active) !important; border-color: var(--border-strong) !important; }
+#my-extension-root .cc-toggle-thumb { display: block !important; width: 16px !important; height: 16px !important; border-radius: 50% !important; background: var(--text-secondary) !important; transition: transform var(--ease) !important; }
+#my-extension-root .cc-toggle.is-on .cc-toggle-thumb { transform: translateX(18px) !important; background: var(--text-primary) !important; }
+
+#my-extension-root .cc-action-btn { width: 100% !important; min-width: 0 !important; height: 34px !important; min-height: 34px !important; padding: 0 var(--space-4) !important; border-radius: var(--radius-sm) !important; background: var(--bg-subtle) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-primary) !important; font-size: var(--text-sm) !important; font-weight: 500 !important; }
+#my-extension-root .cc-action-btn:hover:not(:disabled) { background: var(--bg-hover) !important; border-color: var(--border-default) !important; }
+#my-extension-root .cc-action-btn--primary { background: var(--bg-active) !important; border-color: var(--border-strong) !important; }
+#my-extension-root .cc-btn-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: var(--space-2) !important; }
+
+#my-extension-root .cc-segmented { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 2px !important; padding: 2px !important; background: var(--bg-subtle) !important; border-radius: var(--radius-sm) !important; border: 1px solid var(--border-subtle) !important; }
+#my-extension-root .cc-segmented button { width: 100% !important; min-width: 0 !important; height: 30px !important; border-radius: 4px !important; background: transparent !important; border: none !important; color: var(--text-muted) !important; font-size: var(--text-xs) !important; }
+#my-extension-root .cc-segmented button.is-active { background: var(--bg-active) !important; color: var(--text-primary) !important; }
+
+#my-extension-root .cc-form-stack { display: flex !important; flex-direction: column !important; gap: var(--space-2) !important; }
+#my-extension-root .cc-form-stack input,
+#my-extension-root .cc-form-stack select,
+#my-extension-root .cc-full-input,
+#my-extension-root .cc-inline-form input {
+  width: 100% !important; height: 34px !important; padding: 0 var(--space-3) !important;
+  background: var(--bg-input) !important; border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-sm) !important; color: var(--text-primary) !important;
+  font-size: var(--text-sm) !important; outline: none !important;
+}
+#my-extension-root .cc-field-label { font-size: 10px !important; color: var(--text-muted) !important; text-transform: uppercase !important; letter-spacing: 0.04em !important; }
+#my-extension-root .cc-id-row { display: flex !important; align-items: center !important; gap: var(--space-2) !important; }
+#my-extension-root .cc-id-chip { flex: 1 !important; min-width: 0 !important; height: 34px !important; width: auto !important; font-family: var(--font-mono) !important; font-size: 10px !important; color: var(--text-secondary) !important; background: var(--bg-subtle) !important; border: 1px solid var(--border-subtle) !important; border-radius: var(--radius-sm) !important; }
+#my-extension-root .cc-status { margin: 0 !important; font-size: var(--text-xs) !important; color: var(--text-muted) !important; text-align: center !important; }
+
+#my-extension-root .cc-profile-list { list-style: none !important; margin: 0 !important; padding: 0 !important; display: flex !important; flex-direction: column !important; gap: var(--space-1) !important; }
+#my-extension-root .cc-profile-row { display: flex !important; align-items: center !important; gap: var(--space-1) !important; border-radius: var(--radius-sm) !important; border: 1px solid var(--border-subtle) !important; background: var(--bg-subtle) !important; padding: 2px !important; }
+#my-extension-root .cc-profile-row.is-active { border-color: var(--border-strong) !important; background: var(--bg-active) !important; }
+#my-extension-root .cc-profile-select { flex: 1 !important; display: flex !important; align-items: center !important; gap: var(--space-2) !important; height: 36px !important; min-width: 0 !important; width: auto !important; background: transparent !important; border: none !important; padding: 0 var(--space-2) !important; color: var(--text-primary) !important; }
+#my-extension-root .cc-profile-dot { width: 8px !important; height: 8px !important; border-radius: 50% !important; background: var(--border-strong) !important; flex-shrink: 0 !important; }
+#my-extension-root .cc-profile-row.is-active .cc-profile-dot { background: var(--success-text) !important; }
+#my-extension-root .cc-profile-name { flex: 1 !important; min-width: 0 !important; height: 28px !important; background: transparent !important; border: none !important; color: var(--text-primary) !important; font-size: var(--text-sm) !important; outline: none !important; padding: 0 !important; }
+#my-extension-root .cc-badge { font-size: 9px !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; color: var(--text-muted) !important; border: 1px solid var(--border-subtle) !important; border-radius: var(--radius-full) !important; padding: 1px 6px !important; }
+#my-extension-root .cc-icon-danger { width: 28px !important; height: 28px !important; min-width: 28px !important; background: transparent !important; border: none !important; color: var(--danger) !important; font-size: 16px !important; }
+#my-extension-root .cc-inline-form { display: flex !important; gap: var(--space-2) !important; }
+#my-extension-root .cc-inline-form .cc-action-btn { width: auto !important; min-width: 64px !important; flex-shrink: 0 !important; }
