@@ -12,7 +12,7 @@ import {
   setFirebaseCustomConfig,
 } from "../../shared/lib/syncSettings";
 import { firebasePush, firebasePull, ensureSignedIn } from "../../shared/lib/firebaseSync";
-import { saveAiProviders } from "../../../lib/aiProviders";
+import { saveAiProviders } from "../../lib/aiProviders";
 
 function hasChromeStorage() {
   return typeof chrome !== "undefined" && chrome.storage;
